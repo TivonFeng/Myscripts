@@ -3,11 +3,11 @@ import os
 import sys	
 import time
 
+#output dir
+outputdir = '/work/work/android_mr1/out/target/product/sofia3gr/system/app/'
 
-
-
-def debug(argv):
-	
+#checkDevice
+def checkDevice():
 	flag = True
 	while flag:
 		tmp = os.popen('adb devices').readlines()
@@ -22,9 +22,11 @@ def debug(argv):
 				print ('starting server!')
 			i = i + 1
 		print ('check device!')
-		time.sleep(3)
+		time.sleep(1)
 	print ('device is ready!')
 
+#root & remount device
+def root_remountDevice():
 	flag = True
 	while flag:
 		tmp = os.popen('adb root').readlines()
@@ -39,14 +41,26 @@ def debug(argv):
 		if i == 'remount succeeded\n':
 			flag = False
 	print ('remount ok!')
-	time.sleep(1)
+	
 
-	os.system('adb push \
-			/work/Mandroid/out/target/product/sofia3gr/system/app/{0}/{1}.apk /system/app/{2}/'.format(argv,argv,argv))
-	print ('push ok!')
-	os.system('adb reboot')
-	print ('rebooting!')
+#install app
+def installApp(argv):
+	tmp = os.popen('adb  install -r \
+			{0}/{1}/{2}.apk'.format(outputdir, argv, argv)).readlines()
+	print (tmp[1])
+	if 'Failure' in tmp[1]:
+		print ('installed fail!')
+		print ('pushing!')
+		os.system('adb push \
+			{0}/{1}/{2}.apk'.format(outputdir, argv, argv))
+		print ('push ok!')
+		print ('rebooting!')
+		os.system('adb reboot')
+		print ('reboot ok!')
+	
 
+
+#get argument
 def getsys():
 	if len(sys.argv) != 2:
 		print ('please check args!')
@@ -57,6 +71,12 @@ def getsys():
 			 a = sys.argv[1].split('.')
 			 tmp = a[0]
 		return True,tmp
+
+
+def debug(argv):
+	checkDevice()
+	root_remountDevice()
+	installApp(argv)
 
 def main():
 	flag,argv = getsys()
